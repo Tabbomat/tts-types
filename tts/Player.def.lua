@@ -122,3 +122,6 @@ function Player.getPlayers() end
 --- Returns all spectating (grey) players.
 ---@return tts__Player[]
 function Player.getSpectators() end
+
+---@return tts__PlayerRegularColor
+function getSeatedPlayers() end

@@ -26,6 +26,7 @@
 ---@field min_distance nil | number
 
 ---@class tts__Object
+---@field alt_view_angle tts__Vector
 ---@field angular_drag number
 ---@field AssetBundle tts__AssetBundle  @[Read only]
 ---@field auto_raise boolean
@@ -36,6 +37,11 @@
 ---@field grid_projection boolean
 ---@field guid string @[Read only]
 ---@field held_by_color nil | tts__PlayerColor @[Read only]
+---@field held_flip_index number
+---@field held_position_offset tts__Vector
+---@field held_reduce_force boolean
+---@field held_rotation_offset tts__Vector
+---@field held_spin_index number
 ---@field hide_when_face_down boolean
 ---@field ignore_fog_of_war boolean
 ---@field interactable boolean
@@ -44,6 +50,7 @@
 ---@field locked boolean
 ---@field mass number
 ---@field max_typed_number number
+---@field measure_movement boolean
 ---@field memo nil | string
 ---@field name string @[Read only] Internal resource name for this Object. Typically only useful for spawnObjectData()/spawnObjectJSON(). Generally, you want getName() instead.
 ---@field pick_up_position tts__Vector @[Read only]
@@ -107,6 +114,7 @@ local CardCustom
 ---@class tts__Counter : tts__Object
 
 ---@class tts__Deck : tts__Container
+local Deck
 
 ---@class tts__DeckCustom : tts__Deck
 local DeckCustom
@@ -192,6 +200,11 @@ local Token
 ---@return boolean
 function Object.addAttachment(object) end
 
+
+---@param player_color tts__PlayerHandColor
+---@return boolean
+function Object.addToPlayerSelection(player_color) end
+
 ---@overload fun(label: string, callback: (fun(playerColor: tts__PlayerHandColor): void)): true
 ---@param label string @Text for the menu item.
 ---@param callback fun(playerColor: tts__PlayerHandColor): void
@@ -224,6 +237,15 @@ function Object.clearContextMenu() end
 ---@return true
 function Object.clearButtons() end
 
+---@return boolean
+function Object.clearInputs() end
+
+---@shape tts__Object_CloneParameters
+---@field position nil | tts__VectorShape @Where the Object is placed. Defaults to {x=0, y=3, z=0}
+---@field snap_to_grid nil | boolean @If the Object snaps to grid. Defaults to false
+
+function Object.clone(parameters) end
+
 ---@alias tts__CreateButtonParameters tts__ButtonParameters
 
 ---
@@ -235,6 +257,30 @@ function Object.clearButtons() end
 ---@return boolean
 function Object.createButton(parameters) end
 
+---@shape tts__InputParameters
+---@field input_function string @A String of the function's name that will be run when a key is used or when it is deselected.
+---@field function_owner nil | tts__Object @The Object which contains the click_function function. Defaults to Global>
+---@field label nil | string @Text that appears as greyed out text when there is no value in the input.
+---@field position nil | tts__VectorShape @Where the input appears, relative to the Object's center.
+---@field rotation nil | tts__VectorShape @How the input is rotated, relative to the Object's rotation. Defaults to {x=0, y=0, z=0}.
+---@field scale nil | tts__VectorShape @Scale of the input, relative to the Object's scale. Defaults to {x=1, y=1, z=1}.
+---@field width nil | number @How wide the input will be, relative to the Object. Defaults to 100.
+---@field height nil | number @How tall the input will be, relative to the Object. Defaults to 100.
+---@field font_size nil | number @Size the label/value font will be, relative to the Object. Defaults to 100.
+---@field color nil | tts__ColorShape @A Color for the input's background. Defaults to {r=1, g=1, b=1}.
+---@field font_color nil | tts__ColorShape @A Color for the value text.  Defaults to {r=0, g=0, b=0}.
+---@field tooltip nil | string @Popup of text, similar to how an Object's name is displayed on mouseover.  Defaults to ''.
+---@field alignment nil | 1 | 2 | 3 | 4 | 5 @How text is aligned in the input box. Defaults to 1
+---@field value nil | string @Text entered into the input. Defaults to ''
+---@field validation nil | 1 | 2 | 3 | 4 | 5 | 6 @What characters can be input into the input value field. Defaults to 1.
+---@field tab nil | 1 | 2 | 3 @How the pressing of "tab" is handled when inputting. Defaults to 1
+
+---@alias tts__CreateInputParameters tts__InputParameters
+
+---@param parameters tts__CreateInputParameters
+---@return boolean
+function Object.createInput(parameters) end
+
 ---
 --- If the object is a bag, deck or stack, deals an object from within to the specified player hand.
 ---
@@ -245,6 +291,19 @@ function Object.createButton(parameters) end
 ---@param handIndex number @Default 1
 ---@return true
 function Object.deal(count, destination, handIndex) end
+
+---@param offset tts__VectorShape
+---@param flip boolean
+---@param player_color tts__PlayerHandColor
+---@return tts__Object
+function Object.dealToColorWithOffset(offset, flip, player_color) end
+
+---@param index number
+---@return boolean
+function Object.destroyAttachment(index) end
+
+---@return boolean
+function Object.destroyAttachments() end
 
 ---
 --- Destroys the underlying Tabletop Simulator object.
@@ -269,6 +328,13 @@ function Object.drop() end
 ---@param parameters tts__EditButtonParameters
 ---@return boolean
 function Object.editButton(parameters) end
+
+---@shape tts__EditInputParameters : tts__InputParameters
+---@field index number
+
+---@param parameters tts__EditInputParameters
+---@return boolean
+function Object.editInput(parameters) end
 
 ---@return boolean
 function Object.flip() end
@@ -321,6 +387,31 @@ function Object.getBoundsNormalized() end
 
 ---@return tts__Button[]
 function Object.getButtons() end
+
+---@return tts__Color
+function Object.getColorTint() end
+
+---@shape tts__Input
+---@field input_function string @A String of the function's name that will be run when a key is used or when it is deselected.
+---@field function_owner tts__Object @The Object which contains the click_function function.
+---@field label string @Text that appears as greyed out text when there is no value in the input.
+---@field position tts__Vector @Where the input appears, relative to the Object's center.
+---@field rotation tts__Vector @How the input is rotated, relative to the Object's rotation.
+---@field scale tts__Vector @Scale of the input, relative to the Object's scale.
+---@field width number @How wide the input will be, relative to the Object.
+---@field height number @How tall the input will be, relative to the Object.
+---@field font_size number @Size the label/value font will be, relative to the Object.
+---@field color tts__Color @A Color for the input's background.
+---@field font_color tts__Color @A Color for the value text.
+---@field tooltip string @Popup of text, similar to how an Object's name is displayed on mouseover.
+---@field alignment 1 | 2 | 3 | 4 | 5 @How text is aligned in the input box.
+---@field value string @Text entered into the input.
+---@field validation 1 | 2 | 3 | 4 | 5 | 6 @What characters can be input into the input value field.
+---@field tab 1 | 2 | 3 @How the pressing of "tab" is handled when inputting.
+---@field index number
+
+---@return tts__Input[]
+function Object.getInputs() end
 
 ---@shape tts__Object_ImageCustomObject
 ---@field image string
@@ -395,6 +486,20 @@ function Object.getButtons() end
 ---@field stackable boolean
 
 ---@alias tts__Object_CustomObject tts__Object_AssetBundleCustomObject | tts__Object_CardCustomObject | tts__Object_DeckCustomObject | tts__Object_DieCustomObject | tts__Object_ModelCustomObject | tts__Object_TileCustomObject | tts__Object_TokenCustomObject
+
+---@alias tts__Force_Type 1 | 2 | 3 | 4
+
+---@overload fun(vector: tts__VectorShape): boolean
+---@param vector tts__VectorShape
+---@param force_type tts__Force_Type
+---@return boolean
+function Object.addForce(vector, force_type) end
+
+---@overload fun(vector: tts__VectorShape): boolean
+---@param vector tts__Vector
+---@param force_type tts__Force_Type
+---@return boolean
+function Object.addTorque(vector, force_type) end
 
 ---@return {} | tts__Object_CustomObject
 function Object.getCustomObject() end
@@ -520,6 +625,17 @@ function Card.putObject(object) end
 ---@return tts__Object
 function Object.removeAttachment(index) end
 
+---@return tts__Object
+function Object.removeAttachments() end
+
+---@param player_color tts__PlayerHandColor
+---@return boolean
+function Object.removeFromPlayerSelection(player_color) end
+
+---Resets this Object. Resetting a Deck brings all the Cards back into it. Resetting a Bag clears its contents (works for both Loot and Infinite Bags).
+---@return boolean
+function Object.reset() end
+
 ---
 --- Returns the object's position.
 ---@return tts__Vector
@@ -587,6 +703,18 @@ function Object.getSnapPoints() end
 ---@return number
 function Object.getQuantity() end
 
+---@return tts__PlayerHandColor[]
+function Object.getSelectingPlayers() end
+
+---@return tts__Vector
+function Object.getTransformForward() end
+
+---@return tts__Vector
+function Object.getTransformRight() end
+
+---@return tts__Vector
+function Object.getTransformUp() end
+
 ---@return any
 function Object.getValue() end
 
@@ -608,6 +736,9 @@ function Object.getVectorLines() end
 --- Returns the object's velocity.
 ---@return tts__Vector
 function Object.getVelocity() end
+
+---@return tts__Object[]
+function Object.getZones() end
 
 ---@return true
 function Object.highlightOff() end
@@ -644,9 +775,21 @@ function Object.jointTo(object, parameters) end
 ---@return boolean
 function Object.randomize(playerColor) end
 
+---Returns Object reference of itself after it respawns itself.
+---@return tts__Object
+function Object.reload() end
+
 ---@param index number @button index for this object, starting at 0
 ---@return boolean
 function Object.removeButton(index) end
+
+---@param index number
+---@return boolean
+function Object.removeInput(index) end
+
+---@param vector tts__VectorShape
+---@return boolean
+function Object.rotate(vector) end
 
 ---
 --- Scales the object by the specified multiplier(s), relative to the object's existing scale.
@@ -655,6 +798,10 @@ function Object.removeButton(index) end
 ---@param scale number
 ---@return true
 function Object.scale(scale) end
+
+---@param vector tts__VectorShape
+---@return boolean
+function Object.setAngularVelocity(vector) end
 
 ---@shape tts__Object_DecalParameters
 ---@field name string
@@ -678,6 +825,10 @@ function Object.setDecals(decals) end
 ---@param description string
 ---@return true
 function Object.setDescription(description) end
+
+---@param notes string
+---@return boolean
+function Object.setGMNotes(notes) end
 
 ---@generic C : tts__PlayerColor
 ---@param colors C[]
@@ -757,6 +908,9 @@ function Object.setRotationSmooth(rotation, collide, fast) end
 ---@see tts__Object#getRotationValues
 function Object.setRotationValue(value) end
 
+---@param rotation_values tts__Object_RotationValue[]
+function Object.setRotationValues(rotation_values) end
+
 ---@param newValue string
 ---@return any
 function Object.setValue(newValue) end
@@ -778,9 +932,30 @@ function Object.setVar(name, value) end
 ---@see tts__Object#getVectorLines
 function Object.setVectorLines(lines) end
 
+---@param vector tts__VectorShape
+---@return boolean
+function Object.setVelocity(vector) end
 
+---Rolls dice/coins.
+---@return boolean
+function Object.roll() end
+
+---Shuffles/shakes up contents of a deck or bag.
 ---@return boolean
 function Object.shuffle() end
+
+---Splits a deck, as evenly as possible, into a number of piles.
+---@param piles number
+---@return tts__Object[]
+function Deck.split(piles) end
+
+---Spreads the cards of a deck out on the table.
+---@param distance number
+---@return tts__Card[]
+function Deck.spread(distance) end
+
+---@param vector tts__VectorShape
+function Object.translate(vector) end
 
 ---
 --- Returns a world coordinate position corresponding with local coordinate position.
@@ -834,6 +1009,32 @@ function Object.takeObject(params) end
 ---@return boolean
 function Object.unregisterCollisions() end
 
+---@param tag string
+---@return boolean
+function Object.addTag(tag) end
+
+---@return string[]
+function Object.getTags() end
+
+---@return boolean
+function Object.hasAnyTag() end
+
+---@param other tts__Object
+---@return boolean
+function Object.hasMatchingTag(other) end
+
+---@param tag string
+---@return boolean
+function Object.hasTag(tag) end
+
+---@param tag string
+---@return boolean
+function Object.removeTag(tag) end
+
+---@param tags string[]
+---@return boolean
+function Object.setTags(tags) end
+
 ---@shape tts__Callback<T>
 ---@field callback_function nil | T
 ---@field callback nil | string @Deprecated - use callback_function
@@ -883,9 +1084,25 @@ end
 function getObjectFromGUID(guid)
 end
 
+---@Deprecated use getObjects() instead
 ---@return tts__Object[]
 function getAllObjects()
 end
+
+---@return tts__Object[]
+function getObjects() end
+
+---@param tag string
+---@return tts__Object[]
+function getObjectsWithTag(tag) end
+
+---@param tags string[]
+---@return tts__Object[]
+function getObjectsWithAnyTags(tags) end
+
+---@param tags string[]
+---@return tts__Object[]
+function getObjectsWithAllTags(tags) end
 
 ---@class tts__Global : tts__Object
 Global = {}

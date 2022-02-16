@@ -6,6 +6,12 @@
 ---@return true
 function addHotkey(label, callback, triggerOnKeyUp) end
 
+---@return boolean
+function clearHotkeys() end
+
+---@return boolean
+function showHotkeyConfig() end
+
 ---@overload fun(label: string, callback: (fun(playerColor: tts__PlayerHandColor, menuPosition: nil | tts__Vector): void)): true
 ---@overload fun(label: string, callback: (fun(playerColor: tts__PlayerHandColor, menuPosition: nil | tts__Vector): void), keepOpen: boolean): true
 ---@param label string @Text for the menu item.
@@ -31,6 +37,9 @@ function broadcastToAll(message, color) end
 ---@return boolean
 function broadcastToColor(message, playerColor, messageColor) end
 
+---@return boolean
+function flipTable() end
+
 ---@param objects tts__Object[]
 ---@return (tts__Container | tts__Stackable)[]
 function group(objects) end
@@ -54,6 +63,13 @@ function log(value, label, tags) end
 ---@param displayTag boolean @Default false
 ---@return string
 function logString(value, label, tag, concise, displayTag) end
+
+---@param tag string
+---@param tint tts__ColorShape
+---@param prefix string
+---@param postfix string
+---@return boolean
+function logStyle(tag, tint, prefix, postfix) end
 
 ---@overload fun(message: string): boolean
 ---@param message string
